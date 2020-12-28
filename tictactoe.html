@@ -37,6 +37,7 @@ function Board() {
 	var nAvailableCells = 9;
 	var winner = EMPTY;
 	var winingCells = null;
+	var onDrawCell = [];
 	
 	currentTurn = CROSS;
 	
@@ -52,21 +53,30 @@ function Board() {
 		return winningStreaks.some( streak => hasWinningStreak(streak, side) );
 	}
 	
+	function drawCell(x,y,content,isWinner) {
+		onDrawCell.forEach( callback => callback(x,y,content,isWinner) );
+	}
+	
+	function setCell(x,y,content) {
+		cells[x][y] = content;
+		drawCell(x,y,content,false);
+	}
+	
 	this.isCellEmpty = function(x,y) {
 		return cells[x][y] == EMPTY;
 	}
 	
 	this.move = function (x,y) {
-	    if (cells[x][y] != EMPTY) return EMPTY;
-		if (winner != EMPTY) return EMPTY;
+	    if (cells[x][y] != EMPTY) return;
+		if (winner != EMPTY) return;
 		
-		var result = cells[x][y] = currentTurn;
+		setCell(x,y,currentTurn);
 		if (isWinner(currentTurn)) {
 			winner = currentTurn;
+			winningCells.forEach( xy => drawCell(xy[0],xy[1],winner, true) );
 		}
 		currentTurn = currentTurn == CROSS ? CIRCLE : CROSS;
 		--nAvailableCells;
-		return result;
 	}
 	
 	this.gameEnded = function() {
@@ -74,12 +84,17 @@ function Board() {
 	}
 	
 	this.getWinner = function() { return winner; }
+	
+	this.onDrawCell = function(callback) {
+	   onDrawCell.push(callback)
+	}
 }
 
 function Game() {
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
   var board = new Board()
+  board.onDrawCell(drawCell);
   canvas.addEventListener("click", onClick, false);
   
   function line(x0,y0,x1,y1) {
@@ -102,10 +117,18 @@ function Game() {
 	}
   }
   
-  function drawCell(x,y,content) {
+  function drawCell(x,y,content,isWinner) {
 	if (content == EMPTY) return;
 	x0 = Math.floor((x+0.5)*CELL_SIZE_X);
 	y0 = Math.floor((y+0.5)*CELL_SIZE_Y);
+	
+	if (isWinner) {
+		ctx.fillStyle = "#EE2222";
+		rx = (CELL_SIZE_X-4)/2;
+		ry = (CELL_SIZE_Y-4)/2;
+		ctx.fillRect(x0-rx, y0-ry, rx*2, ry*2);
+	}
+	
 	r = CELL_SIZE_X*0.4;
 	ctx.lineWidth = 10;
 	
@@ -129,13 +152,7 @@ function Game() {
   }
   
   function onClickCell(x,y) {
-    side = board.move(x,y);
-	if (side == EMPTY) return;
-	drawCell(x,y,side);
-	if (board.gameEnded()) {
-		winner = board.getWinner();
-		window.alert( (winner == CIRCLE? "Circles" : "Crosses") + " won!" );
-	}
+    board.move(x,y);
   }
   
   this.draw = function() {
