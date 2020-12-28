@@ -1,0 +1,156 @@
+<html>
+<head>
+<title>Tic-tac-toe</title>
+<style>
+#canvas {
+   margin-left: 1em;
+}
+</style>
+<script>
+const EMPTY = 0;
+const CIRCLE = 1;
+const CROSS = 2;
+
+const CELL_SIZE_X = 100;
+const CELL_SIZE_Y = 100;
+const CELLS_X = 3;
+const CELLS_Y = 3;
+
+function Board() {
+	var cells = [
+		[EMPTY, EMPTY, EMPTY],
+		[EMPTY, EMPTY, EMPTY],
+		[EMPTY, EMPTY, EMPTY]
+	];
+	
+	const winningStreaks = [
+		[[0,0],[1,0],[2,0]],
+		[[0,1],[1,1],[2,1]],
+		[[0,2],[1,2],[2,2]],
+		[[0,0],[0,1],[0,2]],
+		[[1,0],[1,1],[1,2]],
+		[[2,0],[2,1],[2,2]],
+		[[0,0],[1,1],[2,2]],
+		[[0,2],[1,1],[2,0]],
+	];
+	
+	var nAvailableCells = 9;
+	var winner = EMPTY;
+	var winingCells = null;
+	
+	currentTurn = CROSS;
+	
+    function hasWinningStreak(streak, side) {
+	   result = streak.every( coords => cells[coords[0]][coords[1]] == side);
+	   if (result) {
+		winningCells = streak;
+	   }
+	   return result;
+	}
+	
+	function isWinner(side) {
+		return winningStreaks.some( streak => hasWinningStreak(streak, side) );
+	}
+	
+	this.isCellEmpty = function(x,y) {
+		return cells[x][y] == EMPTY;
+	}
+	
+	this.move = function (x,y) {
+	    if (cells[x][y] != EMPTY) return EMPTY;
+		if (winner != EMPTY) return EMPTY;
+		
+		var result = cells[x][y] = currentTurn;
+		if (isWinner(currentTurn)) {
+			winner = currentTurn;
+		}
+		currentTurn = currentTurn == CROSS ? CIRCLE : CROSS;
+		--nAvailableCells;
+		return result;
+	}
+	
+	this.gameEnded = function() {
+		return nAvailableCells == 0 || winner != EMPTY;
+	}
+	
+	this.getWinner = function() { return winner; }
+}
+
+function Game() {
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+  var board = new Board()
+  canvas.addEventListener("click", onClick, false);
+  
+  function line(x0,y0,x1,y1) {
+	ctx.beginPath();
+	ctx.moveTo(x0,y0);
+	ctx.lineTo(x1,y1);
+	ctx.stroke();
+  }
+  
+  function drawLines() {
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 3;
+	
+    for (x=1; x<CELLS_X; ++x) {
+	  line(x*CELL_SIZE_X, 0, x*CELL_SIZE_X, CELLS_Y*CELL_SIZE_Y);
+    }
+		
+    for (y=1;y<CELLS_Y; ++y) {
+      line(0, y*CELL_SIZE_Y, CELLS_X*CELL_SIZE_X, y*CELL_SIZE_Y);
+	}
+  }
+  
+  function drawCell(x,y,content) {
+	if (content == EMPTY) return;
+	x0 = Math.floor((x+0.5)*CELL_SIZE_X);
+	y0 = Math.floor((y+0.5)*CELL_SIZE_Y);
+	r = CELL_SIZE_X*0.4;
+	ctx.lineWidth = 10;
+	
+	if (content == CROSS) {
+		line(x0-r, y0-r, x0+r, y0+r);
+		line(x0-r, y0+r, x0+r, y0-r);
+	}
+	else {
+		ctx.beginPath();
+		ctx.ellipse(x0,y0,r,r,0,0,Math.PI*2);
+		ctx.stroke();
+	}
+  }
+  
+  function onClick(event) {
+    x = event.pageX - canvas.offsetLeft;
+    y = event.pageY - canvas.offsetTop;
+	cellX = Math.floor(x/CELL_SIZE_X);
+	cellY = Math.floor(y/CELL_SIZE_Y);
+	onClickCell(cellX, cellY);
+  }
+  
+  function onClickCell(x,y) {
+    side = board.move(x,y);
+	if (side == EMPTY) return;
+	drawCell(x,y,side);
+	if (board.gameEnded()) {
+		winner = board.getWinner();
+		window.alert( (winner == CIRCLE? "Circles" : "Crosses") + " won!" );
+	}
+  }
+  
+  this.draw = function() {
+    drawLines();
+  }
+}
+
+
+function onLoad() {
+  new Game().draw();
+}
+</script>
+</head>
+<body onLoad="onLoad()">
+<h1>Tic-tac-toe</h1>
+<canvas id="canvas" width="300" height="300"></canvas>
+</body>
+</html>
