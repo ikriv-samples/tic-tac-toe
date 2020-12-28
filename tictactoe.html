@@ -78,12 +78,44 @@ function Board() {
 	this.onDrawCell = function(callback) {
 	   onDrawCell.push(callback)
 	}
+	
+	this.cell = function(x,y) {
+		return cells[x][y];
+	}
+	
+	this.isGameEnded = function() {
+		return winner != EMPTY || nAvailableCells == 0;
+	}
+}
+
+function AutoPlayer(board) {
+	function getAvailableCells() {
+		availableCells = [];
+		for (x=0; x<3; ++x)
+			for (y=0; y<3; ++y) {
+				if (board.cell(x,y) == EMPTY) {
+					availableCells.push([x,y]);
+				}
+			}
+		return availableCells;
+	}
+	
+	this.move = function() {
+		if (board.isGameEnded()) return;
+		
+		// move randomly into any available cell
+		availableCells = getAvailableCells();
+		idx = Math.floor(Math.random()*availableCells.length);
+		cell = availableCells[idx];
+		board.move(cell[0], cell[1]);
+	}
 }
 
 function Game() {
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
-  var board = new Board()
+  var board = new Board();
+  var autoPlayer = new AutoPlayer(board);
   board.onDrawCell(drawCell);
   canvas.addEventListener("click", onClick, false);
   
@@ -143,6 +175,7 @@ function Game() {
   
   function onClickCell(x,y) {
     board.move(x,y);
+	autoPlayer.move();
   }
   
   this.draw = function() {
