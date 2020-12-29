@@ -97,31 +97,6 @@ namespace TicTacToeGamePlan
         }
     }
 
-    /*
-    public class Move
-    {
-        public Move(Position position)
-        {
-            Parent = null;
-            Cell = -1;
-            Side = CellState.Circle;
-            Position = position;
-        }
-
-        public Move(Position parent, int cell, CellState side)
-        {
-            Parent = parent;
-            Side = side;
-            Cell = cell;
-            Position = Parent.Move(cell, side);
-        }
-
-        public Position Parent { get; }
-        public CellState Side { get; }
-        public int Cell { get; }
-        public Position Position { get; }
-    }*/
-
     public class PositionTree
     {
         public PositionTree(Position position, CellState whoMoves, Dictionary<int, PositionTree> children)
