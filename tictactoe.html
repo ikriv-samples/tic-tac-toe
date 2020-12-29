@@ -6,6 +6,8 @@
    margin-left: 1em;
 }
 </style>
+<script src="moves.js"></script>
+
 <script>
 const EMPTY = 0;
 const CIRCLE = 1;
@@ -91,8 +93,8 @@ function Board() {
 function AutoPlayer(board) {
 	function getAvailableCells() {
 		availableCells = [];
-		for (x=0; x<3; ++x)
-			for (y=0; y<3; ++y) {
+		for (x=0; x<CELLS_X; ++x)
+			for (y=0; y<CELLS_Y; ++y) {
 				if (board.cell(x,y) == EMPTY) {
 					availableCells.push([x,y]);
 				}
@@ -111,11 +113,37 @@ function AutoPlayer(board) {
 	}
 }
 
+
+function SmartPlayer(board) {
+	var moves = getMoves();
+	var powers = [ 1, 3, 9, 27, 81, 243, 729, 2187, 6561 ]; // powers of 3
+
+	function boardToInt() {
+		var n=0;
+		for (x=0; x<CELLS_X; ++x)
+			for (y=0; y<CELLS_Y; ++y) {
+				idx = y*CELLS_X+x;
+				n += board.cell(x,y)*powers[idx];
+			}
+		return n;
+	}
+
+	this.move = function() {
+		if (board.isGameEnded()) return;
+		n = boardToInt();
+		cell = moves[n];
+		x = cell % CELLS_X;
+		y = Math.floor(cell/CELLS_X);
+		board.move(x,y);
+	}
+}
+
+
 function Game() {
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
   var board = new Board();
-  var autoPlayer = new AutoPlayer(board);
+  var autoPlayer = new SmartPlayer(board); //new AutoPlayer(board);
   board.onDrawCell(drawCell);
   canvas.addEventListener("click", onClick, false);
   
