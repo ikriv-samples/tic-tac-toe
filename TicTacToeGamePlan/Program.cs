@@ -107,18 +107,37 @@ namespace TicTacToeGamePlan
 
             if (Children.Any())
             {
-                Score = Children.Values.Average(c => c.Score);
+                if (whoMoves == CellState.Cross)
+                {
+                    Score = Children.Values.Max(c => c.Score);
+                }
+                else
+                {
+                    Score = Children.Values.Min(c => c.Score);
+                }
+
+                Depth = Children.Values.Max(c => c.Depth) + 1;
                 if (whoMoves == CellState.Circle)
                 {
                     // this position resulted from the cross's move; 
                     // recommended move for circles is the one with the minimum score
-                    RecommendedMove = Children.Aggregate((curMin, x) => x.Value.Score < curMin.Value.Score ? x : curMin).Key;
+                    RecommendedMove = Children.Aggregate((curMin, x) => IsLess(x.Value, curMin.Value) ? x : curMin).Key;
                 }
             }
             else
             {
                 Score = PositionScore.Of(position);
+                Depth = 1;
             }
+        }
+
+        private static bool IsLess(PositionTree a, PositionTree b)
+        {
+            if (a.Score < b.Score) return true;
+            if (a.Score > b.Score) return false;
+
+            // If two trees have the same score, choose the one that has smaller depth, i.e. leads to victory faster
+            return a.Depth < b.Depth;
         }
 
         public Position Position { get; }
@@ -126,6 +145,7 @@ namespace TicTacToeGamePlan
         public double Score { get; private set; }
         public Dictionary<int, PositionTree> Children { get; }
         public int RecommendedMove { get; private set; }
+        public int Depth { get; }
     }
 
     public class PositionTreeBuilder
