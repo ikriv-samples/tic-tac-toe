@@ -33,7 +33,7 @@ function Board() {
 	];
 	
 	var nAvailableCells = 9;
-	var winner = EMPTY;
+	var winner = null;
 	var onDrawCell = [];
 	
 	currentTurn = CROSS;
@@ -61,7 +61,7 @@ function Board() {
 	
 	this.move = function (n) {
 	    if (cells[n] != EMPTY) return;
-		if (winner != EMPTY) return;
+		if (winner != null) return;
 		
 		setCell(n, currentTurn);
 		if (isWinner(currentTurn)) {
@@ -70,6 +70,10 @@ function Board() {
 		}
 		currentTurn = currentTurn == CROSS ? CIRCLE : CROSS;
 		--nAvailableCells;
+		if (nAvailableCells == 0) {
+			winner = EMPTY;
+		}
+		return winner != null;
 	}
 	
 	this.onDrawCell = function(callback) {
@@ -80,12 +84,16 @@ function Board() {
 		return cells[n];
 	}
 	
+	this.getWinner = function() {
+		return winner;
+	}
+	
 	this.isGameEnded = function() {
-		return winner != EMPTY || nAvailableCells == 0;
+		return winner != null;
 	}
 }
 
-function AutoPlayer(board) {
+function RandomPlayer(board) {
 	function getAvailableCells() {
 		availableCells = [];
 		for (n=0; n<TOTAL_CELLS; ++n) {
@@ -103,7 +111,7 @@ function AutoPlayer(board) {
 		availableCells = getAvailableCells();
 		idx = Math.floor(Math.random()*availableCells.length);
 		cell = availableCells[idx];
-		board.move(cell);
+		return board.move(cell);
 	}
 }
 
@@ -124,7 +132,7 @@ function SmartPlayer(board) {
 		if (board.isGameEnded()) return;
 		n = boardToInt();
 		cell = moves[n];
-		board.move(cell);
+		return board.move(cell);
 	}
 }
 
@@ -133,7 +141,7 @@ function Game() {
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
   var board = new Board();
-  var autoPlayer = new SmartPlayer(board); //new AutoPlayer(board);
+  var autoPlayer = new SmartPlayer(board); 
   board.onDrawCell(drawCell);
   canvas.addEventListener("click", onClick, false);
   
@@ -194,19 +202,38 @@ function Game() {
   }
   
   function onClickCell(x,y) {
+    if (board.isGameEnded()) return;
 	var n = y*CELLS_X+x;
-    board.move(n);
-	autoPlayer.move();
+    var gameEnded = board.move(n) || autoPlayer.move();
+	if (gameEnded) {
+		announceWinner(board.getWinner());
+	}
   }
   
-  this.draw = function() {
+  function announceWinner(winner) {
+	var message;
+	
+	if (winner == CROSS) {
+		message = "Crosses won";
+	}
+	else if (winner == CIRCLE) {
+		message = "Naughts won";
+	}
+	else {
+		message = "It's a draw";
+	}
+	
+	window.alert("Game over. " + message);
+  }
+  
+  this.init = function() {
     drawLines();
   }
 }
 
 
 function onLoad() {
-  new Game().draw();
+  new Game().init();
 }
 </script>
 </head>
