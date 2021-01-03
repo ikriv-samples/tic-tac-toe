@@ -2,8 +2,45 @@
 <head>
 <title>Tic-tac-toe</title>
 <style>
-#canvas {
-   margin-left: 1em;
+.main {
+	width: 350px;
+	position: relative;
+	text-align: center;
+}
+
+.messageBox {
+	border: 1px solid black;
+	background-color: #FFEEEEE0;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 60%;
+	margin-right: -50%;
+	transform: translate(-50%, -50%);
+	padding: 10px;
+}
+
+.hidden {
+	display: none;
+}
+
+.messageBox .message {
+	font-size: 20;
+	color: blue;
+	padding-bottom: 5px;
+}
+
+.messageBox input {
+	width: 70px;
+	background-color: #EDD;
+}
+
+.playAgain {
+	margin-top: 15px;
+}
+
+.playAgain input {
+	padding: 3px 10px 3px 10px;
 }
 </style>
 <script src="moves.js"></script>
@@ -20,23 +57,30 @@ const CELLS_Y = 3;
 const TOTAL_CELLS = 9;
 
 function Board() {
-	var cells = [
-		EMPTY, EMPTY, EMPTY,
-		EMPTY, EMPTY, EMPTY,
-		EMPTY, EMPTY, EMPTY
-	];
-	
 	const winningStreaks = [
 		[0,1,2], [3,4,5], [6,7,8],
 		[0,3,6], [1,4,7], [2,5,8],
 		[0,4,8], [2,4,6]
 	];
 	
-	var nAvailableCells = 9;
-	var winner = null;
+	var cells;
+	var nAvailableCells;
+	var winner;
+	var currentTurn;
 	var onDrawCell = [];
 	
-	currentTurn = CROSS;
+	function reset() {
+		cells = [
+			EMPTY, EMPTY, EMPTY,
+			EMPTY, EMPTY, EMPTY,
+			EMPTY, EMPTY, EMPTY
+		];
+		nAvailableCells = 9;
+		winner = null;
+		currentTurn = CROSS;
+	}
+	
+	reset();
 	
     function hasWinningStreak(streak, side) {
 	   result = streak.every( n => cells[n] == side);
@@ -58,6 +102,8 @@ function Board() {
 		cells[n] = content;
 		drawCell(n, content, false);
 	}
+	
+	this.reset = reset;
 	
 	this.move = function (n) {
 	    if (cells[n] != EMPTY) return;
@@ -211,34 +257,78 @@ function Game() {
   }
   
   function announceWinner(winner) {
-	var message;
+	var messageText;
 	
 	if (winner == CROSS) {
-		message = "Crosses won";
+		messageText = "Crosses won";
 	}
 	else if (winner == CIRCLE) {
-		message = "Naughts won";
+		messageText = "Noughts won";
 	}
 	else {
-		message = "It's a draw";
+		messageText = "It's a draw";
 	}
 	
-	window.alert("Game over. " + message);
+	message = document.getElementsByClassName("message")[0];
+	message.innerHTML = messageText;
+	
+	makeVisible("messageBox", true);
   }
   
   this.init = function() {
     drawLines();
   }
+  
+  this.reset = function() {
+	board.reset();
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	drawLines();
+  }
 }
 
+function makeVisible(className, isVisible) {
+	elements = document.getElementsByClassName(className);
+	for (var i=0; i<elements.length; ++i) {
+		if (isVisible) {
+			elements[i].classList.remove("hidden");
+		}
+		else {
+			elements[i].classList.add("hidden");
+		}
+	}
+}
+
+function dismissMessageBox() {
+	makeVisible("messageBox", false);
+	makeVisible("playAgain", true);
+}
+
+var game;
 
 function onLoad() {
-  new Game().init();
+	game = new Game();
+	game.init();
 }
+
+function playAgain() {
+	game.reset();
+	makeVisible("playAgain", false);
+}
+
 </script>
 </head>
 <body onLoad="onLoad()">
-<h1>Tic-tac-toe</h1>
-<canvas id="canvas" width="300" height="300"></canvas>
+<div class="main">
+	<h1>Tic-tac-toe</h1>
+	<canvas id="canvas" width="300" height="300"></canvas>
+	<div class="playAgain hidden">
+		<input type="button" value="Play Again" onclick="playAgain()"></input>
+	</div>
+	
+	<div class="messageBox hidden">
+		<div class="message">Game over</div>
+		<input type="button" value="OK" onclick="dismissMessageBox()"></input>
+	</div>
+</div>
 </body>
 </html>
