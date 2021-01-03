@@ -3,7 +3,7 @@
 <title>Tic-tac-toe</title>
 <style>
 .main {
-	width: 350px;
+	width: 500px;
 	position: relative;
 	text-align: center;
 }
@@ -42,6 +42,21 @@
 .playAgain input {
 	padding: 3px 10px 3px 10px;
 }
+
+@media only screen and (max-width: 500px) {
+	body {
+		padding: 0px;
+		margin: 0px;
+	}
+	.main {
+		width: 100vw;
+	}
+	
+	#canvas {
+		width: 90vw;
+		height: 90vw;
+	}
+}
 </style>
 <script src="moves.js"></script>
 
@@ -50,8 +65,8 @@ const EMPTY = 0;
 const CIRCLE = 1;
 const CROSS = 2;
 
-const CELL_SIZE_X = 100;
-const CELL_SIZE_Y = 100;
+const CELL_SIZE_X = 150;
+const CELL_SIZE_Y = 150;
 const CELLS_X = 3;
 const CELLS_Y = 3;
 const TOTAL_CELLS = 9;
@@ -240,11 +255,9 @@ function Game() {
   }
   
   function onClick(event) {
-    x = event.pageX - canvas.offsetLeft;
-    y = event.pageY - canvas.offsetTop;
-	cellX = Math.floor(x/CELL_SIZE_X);
-	cellY = Math.floor(y/CELL_SIZE_Y);
-	onClickCell(cellX, cellY);
+    x = Math.floor( event.offsetX/canvas.offsetWidth * CELLS_X );
+	y = Math.floor( event.offsetY/canvas.offsetHeight * CELLS_Y );
+	onClickCell(x,y);
   }
   
   function onClickCell(x,y) {
@@ -314,13 +327,12 @@ function playAgain() {
 	game.reset();
 	makeVisible("playAgain", false);
 }
-
 </script>
 </head>
 <body onLoad="onLoad()">
 <div class="main">
 	<h1>Tic-tac-toe</h1>
-	<canvas id="canvas" width="300" height="300"></canvas>
+	<canvas id="canvas" width="450" height="450"></canvas>
 	<div class="playAgain hidden">
 		<input type="button" value="Play Again" onclick="playAgain()"></input>
 	</div>
