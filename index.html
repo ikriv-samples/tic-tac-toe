@@ -226,12 +226,11 @@ function SmartPlayer(board) {
 	}
 }
 
-
-function Game() {
+function Game(autoPlayerClass) {
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
   var board = new Board();
-  var autoPlayer = new SmartPlayer(board); 
+  var autoPlayer = autoPlayerClass ? new autoPlayerClass(board) : null;
   board.onDrawCell(drawCell);
   canvas.addEventListener("click", onClick, false);
   
@@ -292,7 +291,12 @@ function Game() {
   function onClickCell(x,y) {
     if (board.isGameEnded()) return;
 	var n = y*CELLS_X+x;
-    var gameEnded = board.move(n) || autoPlayer.move();
+    var gameEnded = board.move(n);
+
+	if (autoPlayer && !gameEnded) {
+		gameEnded = autoPlayer.move();
+	}
+	
 	if (gameEnded) {
 		announceWinner(board.getWinner());
 	}
@@ -347,8 +351,16 @@ function dismissMessageBox() {
 
 var game;
 
+function getAutoPlayerClass() {
+	const urlParams = new URLSearchParams(window.location.search);
+	const player = urlParams.get('player');
+	if (player == 'human') return null;
+	if (player == 'random') return RandomPlayer;
+	return SmartPlayer;
+}
+
 function onLoad() {
-	game = new Game();
+	game = new Game(getAutoPlayerClass());
 	game.init();
 }
 
